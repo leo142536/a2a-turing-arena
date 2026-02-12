@@ -1,0 +1,94 @@
+// Prisma 数据库模型定义
+// A2A 反向图灵测试竞技场
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型 - 存储 SecondMe 授权信息
+model User {
+  id           String   @id @default(cuid())
+  secondmeId   String   @unique // SecondMe 平台用户 ID
+  name         String   // 用户昵称
+  avatar       String?  // 头像 URL
+  token        String   // access token
+  refreshToken String?  // refresh token
+  scopes       String   @default("") // 授权范围，逗号分隔
+  createdAt    DateTime @default(now())
+
+  // 作为玩家 A 参与的游戏
+  gamesAsA Game[] @relation("PlayerA")
+  // 作为玩家 B 参与的游戏
+  gamesAsB Game[] @relation("PlayerB")
+  // 发起的猜测
+  guessesAsGuesser Guess[] @relation("Guesser")
+  // 被猜测的记录
+  guessesAsTarget  Guess[] @relation("Target")
+}
+
+// 游戏状态枚举
+enum GameStatus {
+  WAITING  // 等待匹配
+  PLAYING  // AI 对话进行中
+  GUESSING // AI 猜测阶段
+  FINISHED // 游戏结束
+}
+
+// 消息发送者角色
+enum SenderRole {
+  A // 玩家 A 的 AI
+  B // 玩家 B 的 AI
+}
+
+// 游戏模型 - 一场对战
+model Game {
+  id         String     @id @default(cuid())
+  status     GameStatus @default(WAITING)
+  playerAId  String     // 玩家 A 的用户 ID
+  playerBId  String?    // 玩家 B 的用户 ID（匹配前为空）
+  rounds     Int        @default(5) // 总轮次
+  currentRound Int      @default(0) // 当前轮次
+  createdAt  DateTime   @default(now())
+  finishedAt DateTime?  // 结束时间
+
+  playerA  User      @relation("PlayerA", fields: [playerAId], references: [id])
+  playerB  User?     @relation("PlayerB", fields: [playerBId], references: [id])
+  messages Message[] // 对话消息
+  guesses  Guess[]   // 猜测结果
+}
+
+// 消息模型 - AI 之间的对话
+model Message {
+  id         String     @id @default(cuid())
+  gameId     String
+  senderRole SenderRole // 发送方角色 A 或 B
+  content    String     // 消息内容
+  round      Int        // 所属轮次
+  createdAt  DateTime   @default(now())
+
+  game Game @relation(fields: [gameId], references: [id])
+}
+
+// 猜测模型 - AI 对对方主人的推断
+model Guess {
+  id          String @id @default(cuid())
+  gameId      String
+  guesserId   String // 猜测者的用户 ID
+  targetId    String // 被猜测者的用户 ID
+  personality String // 猜测的性格特征
+  profession  String // 猜测的职业
+  values      String // 猜测的价值观
+  interests   String // 猜测的兴趣爱好
+  confidence  Float  @default(0) // 置信度 0-1
+  score       Float? // 最终得分（由系统评分）
+  createdAt   DateTime @default(now())
+
+  game    Game @relation(fields: [gameId], references: [id])
+  guesser User @relation("Guesser", fields: [guesserId], references: [id])
+  target  User @relation("Target", fields: [targetId], references: [id])
+}

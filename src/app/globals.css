@@ -1,8 +1,18 @@
+/* 全局样式 - A2A 反向图灵测试竞技场 - 深色科技主题 */
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 深色主题色彩变量 */
+  --background: #0a0a1a;
+  --foreground: #e2e8f0;
+  --card-bg: #1a1a2e;
+  --card-border: #2a2a4a;
+  --text-secondary: #94a3b8;
+  --accent-blue: #6366f1;
+  --accent-purple: #8b5cf6;
+  --accent-cyan: #22d3ee;
+  --success: #10b981;
+  --warning: #f59e0b;
 }
 
 @theme inline {
@@ -12,15 +22,157 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 过渡效果 */
+a, button {
+  transition: all 0.2s ease;
+}
+
+/* ===== 动画关键帧 ===== */
+
+/* 浮动动画 - 用于 AI 头像 */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* 脉冲发光动画 - 用于按钮和强调元素 */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.5); }
+}
+
+/* 渐变背景流动动画 */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 打字光标闪烁 */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* 淡入上移动画 */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 缩放弹入动画 */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 连线脉冲动画 */
+@keyframes line-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* 星星闪烁动画 */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+}
+
+/* ===== 工具类 ===== */
+
+/* 浮动动画类 */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 脉冲发光类 */
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* 渐变流动背景类 */
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* 淡入上移类 */
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* 缩放弹入类 */
+.animate-scale-in {
+  animation: scale-in 0.4s ease-out forwards;
+}
+
+/* 发光按钮样式 */
+.btn-glow {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  transition: all 0.3s ease;
+}
+.btn-glow:hover {
+  box-shadow: 0 0 35px rgba(139, 92, 246, 0.6);
+  transform: translateY(-1px);
+}
+
+/* 深色卡片基础样式 */
+.card-dark {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 1rem;
+}
+
+/* 卡片发光边框效果 */
+.card-glow {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+.card-glow:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+/* 渐变文字 */
+.text-gradient {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #22d3ee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a4a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a5a;
 }
