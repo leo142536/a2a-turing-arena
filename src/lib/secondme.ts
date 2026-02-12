@@ -18,7 +18,7 @@ export function getAuthUrl(
   scopes: string[] = ["user.info", "user.info.shades", "user.info.softmemory", "note.add", "chat"]
 ): string {
   const params = new URLSearchParams({
-    app_id: appId,
+    client_id: appId,
     redirect_uri: redirectUri,
     scope: scopes.join(","),
     response_type: "code",
