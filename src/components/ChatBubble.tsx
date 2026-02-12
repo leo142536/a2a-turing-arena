@@ -1,17 +1,30 @@
-// 对话气泡组件 - 深色主题，蓝紫渐变
-// AI A 用蓝色系，AI B 用紫色系
+// 对话气泡组件 - 深色主题 + framer-motion 滑入动画
+// AI A 用蓝色系从左滑入，AI B 用紫色系从右滑入
+"use client";
+
+import { motion, useReducedMotion } from "framer-motion";
 
 interface ChatBubbleProps {
-  role: "A" | "B";       // 发送者角色
-  content: string;        // 消息内容
-  round: number;          // 所属轮次
+  role: "A" | "B"; // 发送者角色
+  content: string; // 消息内容
+  round: number; // 所属轮次
 }
 
 export default function ChatBubble({ role, content, round }: ChatBubbleProps) {
   const isA = role === "A";
+  const prefersReduced = useReducedMotion();
 
   return (
-    <div className={`flex ${isA ? "justify-start" : "justify-end"} mb-3 animate-fade-in-up`}>
+    <motion.div
+      className={`flex ${isA ? "justify-start" : "justify-end"} mb-3`}
+      initial={
+        prefersReduced
+          ? false
+          : { opacity: 0, x: isA ? -30 : 30 }
+      }
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" as const }}
+    >
       <div
         className={`max-w-[70%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
           isA
@@ -30,6 +43,6 @@ export default function ChatBubble({ role, content, round }: ChatBubbleProps) {
         {/* 消息内容 */}
         <p className="whitespace-pre-wrap text-[#e2e8f0]">{content}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }

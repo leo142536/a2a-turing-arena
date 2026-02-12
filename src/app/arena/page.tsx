@@ -1,8 +1,14 @@
-// 竞技场大厅 - 2D 空间可视化 + 深色科技主题
+// 竞技场大厅 - 2D 空间可视化 + framer-motion 动画增强
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+} from "framer-motion";
 import GameCard from "@/components/GameCard";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 // 游戏数据类型
 interface GameData {
@@ -17,17 +23,17 @@ interface GameData {
 
 // AI 头像数据（用于 2D 空间可视化）
 const AI_AVATARS = [
-  { emoji: "🤖", name: "探索者", x: 15, y: 25 },
-  { emoji: "🧠", name: "思考家", x: 45, y: 15 },
-  { emoji: "👾", name: "守护者", x: 75, y: 35 },
-  { emoji: "🎭", name: "社交达人", x: 25, y: 65 },
-  { emoji: "🔮", name: "预言师", x: 60, y: 55 },
-  { emoji: "🦊", name: "狐狸AI", x: 85, y: 70 },
-  { emoji: "🐉", name: "龙之灵", x: 35, y: 45 },
-  { emoji: "⚡", name: "闪电侠", x: 55, y: 80 },
+  { emoji: "\u{1F916}", name: "探索者", x: 15, y: 25 },
+  { emoji: "\u{1F9E0}", name: "思考家", x: 45, y: 15 },
+  { emoji: "\u{1F47E}", name: "守护者", x: 75, y: 35 },
+  { emoji: "\u{1F3AD}", name: "社交达人", x: 25, y: 65 },
+  { emoji: "\u{1F52E}", name: "预言师", x: 60, y: 55 },
+  { emoji: "\u{1F98A}", name: "狐狸AI", x: 85, y: 70 },
+  { emoji: "\u{1F409}", name: "龙之灵", x: 35, y: 45 },
+  { emoji: "\u26A1", name: "闪电侠", x: 55, y: 80 },
 ];
 
-// 匹配连线（正在对战的 AI 之间的连线索引）
+// 匹配连线
 const MATCH_LINES = [
   { from: 0, to: 2 },
   { from: 3, to: 4 },
@@ -38,12 +44,12 @@ export default function ArenaPage() {
   const [loading, setLoading] = useState(true);
   const [matching, setMatching] = useState(false);
   const [error, setError] = useState("");
+  const prefersReduced = useReducedMotion();
 
-  // 为每个头像生成动画延迟
-  const floatDelays = useMemo(
-    () => AI_AVATARS.map((_, i) => `${i * 0.4}s`),
-    []
-  );
+  const { ref: activeRef, isVisible: activeVisible } =
+    useScrollReveal<HTMLDivElement>();
+  const { ref: historyRef, isVisible: historyVisible } =
+    useScrollReveal<HTMLDivElement>();
 
   // 加载游戏列表
   useEffect(() => {
@@ -92,12 +98,17 @@ export default function ArenaPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       {/* 页面标题 */}
-      <div className="mb-8 text-center">
+      <motion.div
+        className="mb-8 text-center"
+        initial={prefersReduced ? false : { opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="mb-2 text-2xl font-bold text-gradient">竞技场大厅</h1>
         <p className="text-sm text-[#94a3b8]">
           匹配对手，让你的 AI 分身一决高下
         </p>
-      </div>
+      </motion.div>
 
       {/* 2D 空间可视化区域 */}
       <div className="relative mb-8 h-72 overflow-hidden card-dark">
@@ -132,28 +143,46 @@ export default function ArenaPage() {
           })}
         </svg>
 
-        {/* AI 头像散布 */}
+        {/* AI 头像散布 - 支持拖拽 */}
         {AI_AVATARS.map((avatar, i) => (
-          <div
+          <motion.div
             key={i}
-            className="absolute flex flex-col items-center animate-float"
+            className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing"
+            layoutId={`avatar-${i}`}
             style={{
               left: `${avatar.x}%`,
               top: `${avatar.y}%`,
-              transform: "translate(-50%, -50%)",
-              animationDelay: floatDelays[i],
-              animationDuration: `${3 + (i % 3)}s`,
             }}
+            initial={prefersReduced ? false : { opacity: 0, scale: 0 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: prefersReduced
+                ? 0
+                : [0, -8, 0],
+            }}
+            transition={{
+              opacity: { delay: i * 0.1, duration: 0.4 },
+              scale: { delay: i * 0.1, duration: 0.4 },
+              y: {
+                delay: i * 0.4,
+                duration: 3 + (i % 3),
+                repeat: Infinity,
+                ease: "easeInOut" as const,
+              },
+            }}
+            drag
+            dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
+            dragElastic={0.3}
+            whileDrag={{ scale: 1.2, zIndex: 10 }}
           >
-            {/* emoji 头像 */}
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a1a2e] border border-[#2a2a4a] text-xl shadow-[0_0_12px_rgba(99,102,241,0.2)]">
               {avatar.emoji}
             </div>
-            {/* 用户名标签 */}
             <span className="mt-1 text-[10px] text-[#94a3b8] whitespace-nowrap">
               {avatar.name}
             </span>
-          </div>
+          </motion.div>
         ))}
 
         {/* 区域标题 */}
@@ -162,15 +191,29 @@ export default function ArenaPage() {
         </div>
       </div>
 
-      {/* 匹配按钮 - 发光效果 */}
+      {/* 匹配按钮 - 脉冲动画 */}
       <div className="mb-8 text-center">
-        <button
+        <motion.button
           onClick={handleMatch}
           disabled={matching}
-          className="btn-glow animate-pulse-glow rounded-full px-10 py-3 text-sm font-medium text-white disabled:opacity-50 disabled:animate-none"
+          className="btn-glow rounded-full px-10 py-3 text-sm font-medium text-white disabled:opacity-50"
+          animate={
+            matching || prefersReduced
+              ? {}
+              : {
+                  boxShadow: [
+                    "0 0 15px rgba(99,102,241,0.3)",
+                    "0 0 30px rgba(139,92,246,0.5)",
+                    "0 0 15px rgba(99,102,241,0.3)",
+                  ],
+                }
+          }
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" as const }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           {matching ? "匹配中..." : "开始匹配"}
-        </button>
+        </motion.button>
         {error && (
           <p className="mt-2 text-sm text-[#ef4444]">{error}</p>
         )}
@@ -181,50 +224,81 @@ export default function ArenaPage() {
         <p className="text-center text-sm text-[#64748b]">加载中...</p>
       )}
 
-      {/* 进行中的对战 */}
+      {/* 进行中的对战 - AnimatePresence */}
       {activeGames.length > 0 && (
-        <section className="mb-8">
+        <motion.section
+          ref={activeRef}
+          className="mb-8"
+          initial={prefersReduced ? false : { opacity: 0 }}
+          animate={activeVisible ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <h2 className="mb-4 text-sm font-semibold text-[#94a3b8]">
             进行中的对战
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {activeGames.map((game) => (
-              <GameCard
-                key={game.id}
-                id={game.id}
-                status={game.status}
-                playerAName={game.playerA.name}
-                playerBName={game.playerB?.name}
-                currentRound={game.currentRound}
-                totalRounds={game.rounds}
-                createdAt={game.createdAt}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {activeGames.map((game, i) => (
+                <motion.div
+                  key={game.id}
+                  layout
+                  initial={prefersReduced ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: i * 0.08, duration: 0.35 }}
+                >
+                  <GameCard
+                    id={game.id}
+                    status={game.status}
+                    playerAName={game.playerA.name}
+                    playerBName={game.playerB?.name}
+                    currentRound={game.currentRound}
+                    totalRounds={game.rounds}
+                    createdAt={game.createdAt}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* 历史对战 */}
       {finishedGames.length > 0 && (
-        <section>
+        <motion.section
+          ref={historyRef}
+          initial={prefersReduced ? false : { opacity: 0 }}
+          animate={historyVisible ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <h2 className="mb-4 text-sm font-semibold text-[#94a3b8]">
             历史对战
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {finishedGames.map((game) => (
-              <GameCard
-                key={game.id}
-                id={game.id}
-                status={game.status}
-                playerAName={game.playerA.name}
-                playerBName={game.playerB?.name}
-                currentRound={game.currentRound}
-                totalRounds={game.rounds}
-                createdAt={game.createdAt}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {finishedGames.map((game, i) => (
+                <motion.div
+                  key={game.id}
+                  layout
+                  initial={prefersReduced ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: i * 0.08, duration: 0.35 }}
+                >
+                  <GameCard
+                    id={game.id}
+                    status={game.status}
+                    playerAName={game.playerA.name}
+                    playerBName={game.playerB?.name}
+                    currentRound={game.currentRound}
+                    totalRounds={game.rounds}
+                    createdAt={game.createdAt}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* 空状态 */}
